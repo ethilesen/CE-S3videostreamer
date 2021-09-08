@@ -1,8 +1,8 @@
 {
-    "accessKey": "",
-    "secretAccessKey": "",
-    "bucketName": "",
-    "region": "us-east-1",
-    "endpoint": "https://s3.wasabisys.com",
+    "accessKey": "492148da7fdf4dd18c0aa92ab7d1f5b9",
+    "secretAccessKey": "8ca41010ebb9d8a99e8660d8857c89f1fcb44c80e85e5c4c",
+    "bucketName": "sintef-demo-videos",
+    "region": "eu-de",
+    "endpoint": "https://s3.private.eu-de.cloud-object-storage.appdomain.cloud",
     "presignedURLExpiration": 3600
 }

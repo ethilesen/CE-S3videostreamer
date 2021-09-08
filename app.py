@@ -1,20 +1,31 @@
 from flask import Flask, render_template, url_for, request, redirect
-import json
+import json,boto3,botocore,os
 
-import boto3
-import botocore
 
-app                     = Flask(__name__)
+##
+app = Flask(__name__)
 
-with open('config.json', 'r') as f:
-    config  = json.loads(f.read().strip())
+try:
+    with open('config.json', 'r') as f:
+        config  = json.loads(f.read().strip())
 
-    endpoint                = config['endpoint']
-    accessKey               = config['accessKey']
-    secretAccessKey         = config['secretAccessKey']
-    bucketName              = config['bucketName']
-    region                  = config['region']
-    presignedURLExpiration  = config['presignedURLExpiration']
+        endpoint                = config['endpoint']
+        accessKey               = config['accessKey']
+        secretAccessKey         = config['secretAccessKey']
+        bucketName              = config['bucketName']
+        region                  = config['region']
+        presignedURLExpiration  = config['presignedURLExpiration']
+except:
+    print('Did not find any config.json')
+
+finally:
+    print('- running with variables')
+    endpoint                = os.getenv('endpoint',"")
+    accessKey               = os.getenv('accessKey',"")
+    secretAccessKey         = os.getenv('secretAccessKey',"")
+    bucketName              = os.getenv('bucketName',"")
+    region                  = os.getenv('region',"")
+    presignedURLExpiration  = os.getenv('presignedURLExpiration',"")
 
 def s3ClientCall():
     try:
@@ -31,20 +42,22 @@ def s3ClientCall():
         return(str(e))
 
 
+
 @app.route('/', methods=['POST', 'GET'])
 def index():
     clientCall      = s3ClientCall()
 
     try:
+
         bucketObjects   = clientCall.list_objects(
             Bucket      = bucketName,
             Delimiter   = '/',
         )
 
-        print()
+        '''print()
         print("[#] All directories/objects in main dir: ")
         print(bucketObjects)
-        print()
+        print()'''
 
         objects = []
         dirs    = []
@@ -53,13 +66,13 @@ def index():
             if "Contents" in bucketObjects:
                 for files in bucketObjects['Contents']:
                     bucketKeys  = files['Key']
-                    print(bucketKeys)
+                    #print(bucketKeys)
                     objects.append(bucketKeys)
 
             if "CommonPrefixes" in bucketObjects:
                 for directories in bucketObjects['CommonPrefixes']:
                     bucketDirs  = directories['Prefix']
-                    print(bucketDirs)
+                    #print(bucketDirs)
                     dirs.append(bucketDirs)
 
         else:
@@ -118,7 +131,9 @@ def play():
     clientCall      = s3ClientCall()
 
     objectName      = request.args.get('name')
-    print(objectName, type(objectName))
+    #print(objectName, type(objectName))
+
+    #clientCall = boto3.client('s3', config=Config(signature_version='s3v4'))
 
     presignedURL    = clientCall.generate_presigned_url('get_object',
         Params      = {
@@ -128,9 +143,9 @@ def play():
         ExpiresIn   = presignedURLExpiration
     )
 
-    print()
+    '''print()
     print(f"[#] Presigned URL: {presignedURL}")
-    print()
+    print()'''
 
     return render_template('play.html', videoURL=presignedURL, objectName=objectName)
 
